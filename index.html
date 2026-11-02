@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CobbleStonePosting - Hub</title>
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body class="bg-gray-950 text-gray-100 min-h-screen p-6">
+  <header class="flex justify-between items-center mb-8 border-b border-gray-800 pb-4 max-w-4xl mx-auto">
+    <h1 class="text-2xl font-black text-amber-500 tracking-tight">🧱 CobbleStonePosting</h1>
+    <div class="flex items-center gap-4">
+      <div id="user-badge-container"></div>
+      <a href="/profile.html" class="text-sm bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-lg border border-gray-700 transition">Profile</a>
+      <a id="nav-admin-btn" href="/admin.html" class="hidden text-sm bg-red-900 hover:bg-red-800 px-3 py-1.5 rounded-lg font-bold border border-red-700 transition">Admin Panel</a>
+      <button id="logout-btn" class="text-sm text-gray-400 hover:text-white">Logout</button>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto space-y-6">
+    <form id="post-form" class="bg-gray-900 border border-gray-800 p-4 rounded-xl shadow-md">
+      <textarea id="post-content" placeholder="Share something to the CobbleStone feed..." required class="w-full bg-gray-800 p-3 rounded-lg text-white border border-gray-700 focus:outline-none focus:border-amber-500 mb-3 resize-none" rows="3"></textarea>
+      <button type="submit" class="bg-amber-600 hover:bg-amber-500 font-bold px-4 py-2 rounded-lg text-sm transition">Publish Post</button>
+    </form>
+
+    <div id="feed-container" class="space-y-4"></div>
+  </main>
+
+  <script type="module" src="/src/hub.ts"></script>
+</body>
+</html>
