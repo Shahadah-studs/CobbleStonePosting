@@ -4,26 +4,177 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CobbleStonePosting - Gate</title>
-  <link rel="stylesheet" href="src/style.css">
   
+  <style>
+    @import url('https://googleapis.com');
+
+    body {
+      margin: 0;
+      background: radial-gradient(circle at top, #1a1126 0%, #09050d 100%);
+      color: #f3f4f6;
+      min-height: 100vh;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      box-sizing: border-box;
+    }
+
+    /* Force Minecraft Pixel Font globally on headings, subtitles, and buttons */
+    h1, #auth-subtitle, #auth-submit-btn, #auth-toggle-btn {
+      font-family: 'Press Start 2P', monospace !important;
+      image-rendering: pixelated;
+      text-shadow: 2px 2px 0px #000000;
+    }
+
+    h1 {
+      font-size: 2.25rem;
+      color: #eab308; /* Amber/Gold Accent */
+      margin: 0 0 0.5rem 0;
+      letter-spacing: -0.05em;
+    }
+
+    #auth-subtitle {
+      font-size: 0.65rem;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.025em;
+      margin: 0;
+    }
+
+    .header-container {
+      width: 100%;
+      max-width: 28rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Minecraft Inventory Slot Style Container Box */
+    .mc-panel {
+      background-color: #2e2e2e;
+      border: 4px solid #141414;
+      box-shadow: inset -4px -4px 0px #1a1a1a, inset 4px 4px 0px #4a4a4a;
+      padding: 2rem;
+      width: 100%;
+      max-width: 28rem;
+      box-sizing: border-box;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    /* Deep Command-Line Terminal Inputs */
+    .input-field {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background-color: #000000;
+      border: 3px solid #555555;
+      color: #e0e0e0;
+      font-family: monospace;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+
+    .input-field:focus {
+      outline: none;
+      border-color: #55ff55; /* Lime green active bar */
+    }
+
+    /* Grey Brick Style Block Button */
+    #auth-submit-btn {
+      width: 100%;
+      background-color: #7c7c7c;
+      color: #ffffff;
+      font-size: 0.75rem;
+      font-weight: bold;
+      padding: 0.9rem 1.25rem;
+      border: 3px solid #000000;
+      box-shadow: inset -3px -3px 0px #4a4a4a, inset 3px 3px 0px #b8b8b8;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      box-sizing: border-box;
+    }
+
+    #auth-submit-btn:hover {
+      background-color: #5c5c5c;
+      box-shadow: inset -3px -3px 0px #333333, inset 3px 3px 0px #999999;
+    }
+
+    #auth-submit-btn:active {
+      box-shadow: inset 3px 3px 0px #4a4a4a, inset -3px -3px 0px #b8b8b8;
+    }
+
+    /* Toggle Link Button styling */
+    #auth-toggle-btn {
+      background: none;
+      border: none;
+      margin-top: 1.5rem;
+      font-size: 0.55rem;
+      color: #9ca3af;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: color 0.2s ease;
+    }
+
+    #auth-toggle-btn:hover {
+      color: #fbbf24;
+    }
+
+    /* Error Notification Window */
+    #auth-error {
+      background-color: #450a0a;
+      border: 3px solid #991b1b;
+      color: #fca5a5;
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+      font-family: monospace;
+      font-size: 0.75rem;
+      text-align: center;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Mobile adjustments */
+    @media (max-width: 480px) {
+      h1 { font-size: 1.75rem; }
+      .mc-panel { padding: 1.25rem; }
+      #auth-submit-btn { padding: 0.75rem 1rem; font-size: 0.65rem; }
+    }
+  </style>
 </head>
-<body class="flex flex-col items-center justify-center min-h-screen p-4">
-  <div class="w-full max-w-md text-center mb-4">
-    <h1 class="text-5xl font-extrabold tracking-tighter text-amber-500 mb-1 drop-shadow-md">CobbleStone</h1>
-    <p class="text-gray-400 text-xs tracking-wide uppercase font-bold" id="auth-subtitle">Ecosystem Authentication Gate</p>
+<body>
+
+  <div class="header-container">
+    <h1>COBBLESTONE</h1>
+    <p id="auth-subtitle">Ecosystem Authentication Gate</p>
   </div>
   
-  <form id="auth-form" class="glass-panel p-8 rounded-2xl w-full max-w-md space-y-4">
-    <div id="auth-error" class="hidden bg-red-950/80 border border-red-800 text-red-300 p-3 rounded-xl text-center font-mono text-xs"></div>
-    
-    <input type="text" id="auth-username" placeholder="Choose Ecosystem Username" class="input-field hidden">
-    <input type="email" id="auth-email" placeholder="Email Address" required class="input-field">
-    <input type="password" id="auth-password" placeholder="Account Password" required class="input-field">
-    
-    <button type="submit" id="auth-submit-btn" class="w-full btn-primary mt-2">Access Hub</button>
-  </form>
+  <div class="mc-panel">
+    <form id="auth-form">
+      <div id="auth-error" class="hidden"></div>
+      
+      <div class="form-group">
+        <input type="text" id="auth-username" placeholder="Choose Username" class="input-field hidden">
+      </div>
+      
+      <div class="form-group">
+        <input type="email" id="auth-email" placeholder="Email Address" required class="input-field">
+      </div>
+      
+      <div class="form-group">
+        <input type="password" id="auth-password" placeholder="Account Password" required class="input-field">
+      </div>
+      
+      <button type="submit" id="auth-submit-btn">ACCESS HUB</button>
+    </form>
+  </div>
   
-  <button id="auth-toggle-btn" class="mt-6 text-xs text-gray-400 hover:text-amber-400 tracking-wider uppercase font-semibold transition">Need an identity? Sign Up</button>
+  <button id="auth-toggle-btn">Need an identity? Sign Up</button>
 
   <script type="module" src="src/login.ts"></script>
 </body>
