@@ -3,33 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CobbleStonePosting - Hub</title>
+  <title>CobbleStonePosting - Server Hub</title>
   <link rel="stylesheet" href="src/style.css">
-  
 </head>
 <body class="min-h-screen p-6">
-  <header class="glass-panel px-6 py-4 rounded-2xl flex justify-between items-center mb-8 max-w-4xl mx-auto">
-    <h1 class="text-2xl font-black text-amber-500 tracking-tight flex items-center gap-2">🧱 CobbleStone</h1>
+  <!-- Header Bar -->
+  <header class="mc-panel flex justify-between items-center mb-6 max-w-4xl mx-auto">
+    <h1 class="text-xl text-amber-500 tracking-tight flex items-center gap-2">CobbleStone</h1>
     <div class="flex items-center gap-4">
-      <div id="user-badge-container" class="bg-gray-900/60 px-3 py-1.5 rounded-lg border border-gray-800/80"></div>
-      <a href="/profile.html" class="text-xs font-bold uppercase tracking-wider bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded-lg border border-gray-700 transition">Profile</a>
-      <a id="nav-admin-btn" href="/admin.html" class="hidden text-xs font-bold uppercase tracking-wider bg-red-950 text-red-400 hover:bg-red-900 px-3 py-2 rounded-lg border border-red-800 transition">Matrix Panel</a>
-      <button id="logout-btn" class="text-xs font-semibold text-gray-400 hover:text-white uppercase tracking-wider ml-2">Exit</button>
+      <div id="user-badge-container"></div>
+      <a href="profile.html" class="btn-primary">PROFILE</a>
+      <a id="nav-admin-btn" href="admin.html" class="btn-danger hidden">MOD PANEL</a>
+      <button id="logout-btn" class="logout-link">X</button>
     </div>
   </header>
 
+  <div class="max-w-4xl mx-auto xp-divider"></div>
+
+  <!-- Posting Form -->
   <main class="max-w-4xl mx-auto space-y-6">
-    <form id="post-form" class="glass-panel p-5 rounded-2xl shadow-xl">
-      <textarea id="post-content" placeholder="Broadcast a new transmission to the feed..." required class="input-field mb-3 resize-none h-24" rows="3"></textarea>
+    <form id="post-form" class="mc-panel shadow-xl">
+      <div class="input-header">Posts feed:</div>
+      <textarea id="post-content" placeholder="Type a post to tell everyone..." required class="input-field mb-3 resize-none h-24" rows="3"></textarea>
       <div class="flex justify-end">
-        <button type="submit" class="btn-primary text-sm px-6 py-2">Publish Post</button>
+        <button type="submit" class="btn-primary">POST</button>
       </div>
     </form>
 
+    <!-- Post Feed Target Container -->
     <div id="feed-container" class="space-y-4"></div>
   </main>
 
   <script type="module" src="src/hub.ts"></script>
 </body>
 </html>
-
