@@ -53,7 +53,7 @@ function generateAvatarHTML(username: string, avatarUrl?: string) {
 
 function renderHeaderBadge() {
   const container = document.getElementById('user-badge-container')!;
-  const crown = currentProfile.role === 'owner' ? '<span class="owner-crown text-amber-400 font-bold ml-1">👑 OWNER</span>' : '';
+  const crown = currentProfile.role === 'owner' ? '<span class="owner-crown text-amber-400 font-bold ml-1">👑</span>' : '';
   const avatarMark = generateAvatarHTML(currentProfile.username, currentProfile.avatar_url);
   
   container.className = "flex items-center gap-2";
@@ -109,7 +109,7 @@ async function loadFeed() {
 };
 
 (window as any).reportPost = async (postId: string) => {
-  const reason = prompt("Enter a comprehensive reason for flagging this content:");
+  const reason = prompt("Enter a actual reason for flagging this content:");
   if (!reason) return;
   await supabase.from('reports').insert({ post_id: postId, reporter_id: currentProfile.id, reason });
   alert("Report transmitted to admin panel.");
