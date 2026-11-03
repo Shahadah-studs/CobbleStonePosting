@@ -29,23 +29,23 @@ async function run() {
   });
 }
 
-function generateAvatarHTML(username: string, avatarUrl?: string) {
+function generateAvatarHTML(username: string, avatarUrl?: string, customSizeStyle?: string) {
+  const sizeClass = customSizeStyle ? `style="width:${customSizeStyle};height:${customSizeStyle};min-width:${customSizeStyle};min-height:${customSizeStyle};"` : '';
   if (avatarUrl && avatarUrl.trim() !== '') {
     return `
-      <div class="mc-avatar-frame">
+      <div class="mc-avatar-frame" ${sizeClass}>
         <img src="${avatarUrl}" class="mc-avatar-img" alt="${username}">
       </div>
     `;
   }
 
-  // Generate a distinct block color background matrix based on username strings
   const fallbackColors = ['#3f3f3f', '#7a2222', '#1b5a7a', '#2c6d2c']; 
   const charCodeSum = username.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
   const selectedBgColor = fallbackColors[charCodeSum % fallbackColors.length];
   const firstLetter = username.charAt(0).toUpperCase();
 
   return `
-    <div class="mc-avatar-frame" style="background-color: ${selectedBgColor};">
+    <div class="mc-avatar-frame" ${sizeClass} style="background-color: ${selectedBgColor};">
       <span class="mc-avatar-char">${firstLetter}</span>
     </div>
   `;
@@ -53,13 +53,15 @@ function generateAvatarHTML(username: string, avatarUrl?: string) {
 
 function renderHeaderBadge() {
   const container = document.getElementById('user-badge-container')!;
-  const crown = currentProfile.role === 'owner' ? '<span class="owner-crown text-amber-400 font-bold ml-1">👑</span>' : '';
+  const crown = currentProfile.role === 'owner' ? '<span class="owner-crown text-amber-400 font-bold ml-1">👑 OWNER</span>' : '';
   const avatarMark = generateAvatarHTML(currentProfile.username, currentProfile.avatar_url);
   
   container.className = "flex items-center gap-2";
   container.innerHTML = `
-    ${avatarMark}
-    <span class="text-xs font-bold text-gray-100 flex items-center">${currentProfile.username} ${crown}</span>
+    <div onclick="window.viewUserProfile('${currentProfile.id}')" style="cursor:pointer;" class="flex items-center gap-2">
+      ${avatarMark}
+      <span class="text-xs font-bold text-gray-100 flex items-center">${currentProfile.username} ${crown}</span>
+    </div>
   `;
 }
 
@@ -69,13 +71,10 @@ async function loadFeed() {
 
   if (!posts) return;
 
-  // Loops and wraps EACH post inside its own independent box layout container block (.mc-card)
   container.innerHTML = posts.map(post => {
     const isBanned = post.profiles?.is_banned;
     const nameString = isBanned ? `[BANNED] ${post.profiles?.username}` : `${post.profiles?.username}`;
     const crown = post.profiles?.role === 'owner' && !isBanned ? '👑' : '';
-    
-    // Compute block pixel graphics fallback metadata
     const avatarLayout = generateAvatarHTML(post.profiles?.username || 'User', post.profiles?.avatar_url);
 
     return `
@@ -83,7 +82,8 @@ async function loadFeed() {
         <div class="flex justify-between items-start mb-3">
           <div class="flex items-center gap-3">
             ${avatarLayout}
-            <span class="font-bold flex items-center gap-1.5 ${isBanned ? 'text-red-500 line-through font-mono text-sm' : 'text-gray-100'}">
+            <!-- Username wrapped inside a dynamic viewport route click click listener handler trigger -->
+            <span onclick="window.viewUserProfile('${post.user_id}')" class="font-bold mc-username-link flex items-center gap-1.5 ${isBanned ? 'text-red-500 line-through font-mono text-sm' : 'text-gray-100'}">
               ${nameString} <span class="owner-crown">${crown}</span>
             </span>
           </div>
@@ -103,16 +103,47 @@ async function loadFeed() {
   }).join('');
 }
 
+// DYNAMIC POPUP PROFILE INJECTOR INTERFACE HOOK
+(window as any).viewUserProfile = async (userId: string) => {
+  const { data: targetProfile, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
+  if (error || !targetProfile) return alert("Failed parsing character profile data payload.");
+
+  // Remove any previously opened card elements to avoid duplicates
+  const existingModal = document.getElementById('mc-profile-modal-view');
+  if (existingModal) existingModal.remove();
+
+  const isBanned = targetProfile.is_banned;
+  const usernameDisplay = isBanned ? `[BANNED] ${targetProfile.username}` : targetProfile.username;
+  const avatarMark = generateAvatarHTML(targetProfile.username, targetProfile.avatar_url, "64px");
+  const roleDisplay = targetProfile.role === 'owner' ? '👑 OWNER' : targetProfile.role === 'admin' ? '🛡️ MODERATOR' : '🗡️ PLAYER';
+  const roleBadgeClass = targetProfile.role === 'owner' ? 'view-card-role-badge view-card-role-owner' : 'view-card-role-badge';
+
+  const modalWrapper = document.createElement('div');
+  modalWrapper.id = 'mc-profile-modal-view';
+  modalWrapper.className = 'mc-modal-overlay';
+  modalWrapper.innerHTML = `
+    <div class="mc-profile-view-card">
+      <div class="view-card-avatar">${avatarMark}</div>
+      <h2 class="text-sm mb-2 ${isBanned ? 'text-red-500 line-through' : 'text-amber-500'}">${usernameDisplay}</h2>
+      <div><span class="${roleBadgeClass}">${roleDisplay}</span></div>
+      <button onclick="document.getElementById('mc-profile-modal-view').remove()" class="btn-primary mt-6 w-full text-xs">CLOSE VIEW</button>
+    </div>
+  `;
+
+  document.body.appendChild(modalWrapper);
+};
+
 (window as any).reactPost = async (postId: string, emoji: string) => {
   await supabase.from('reactions').upsert({ post_id: postId, user_id: currentProfile.id, emoji });
   loadFeed();
 };
 
 (window as any).reportPost = async (postId: string) => {
-  const reason = prompt("Enter a actual reason for flagging this content:");
+  const reason = prompt("Enter a comprehensive reason for flagging this content:");
   if (!reason) return;
   await supabase.from('reports').insert({ post_id: postId, reporter_id: currentProfile.id, reason });
   alert("Report transmitted to admin panel.");
 };
 
 run();
+
