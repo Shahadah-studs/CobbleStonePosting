@@ -41,24 +41,27 @@ async function loadFeed() {
 
   if (!posts) return;
 
+  // Loops and wraps EACH post inside its own independent box layout container block (.mc-card)
   container.innerHTML = posts.map(post => {
     const isBanned = post.profiles?.is_banned;
     const nameString = isBanned ? `[BANNED] ${post.profiles?.username}` : `${post.profiles?.username}`;
     const crown = post.profiles?.role === 'owner' && !isBanned ? '👑' : '';
 
     return `
-      <div class="glass-panel p-6 rounded-2xl relative border-l-4 ${isBanned ? 'border-l-red-600' : 'border-l-amber-500'}">
+      <div class="mc-card border-l-4 ${isBanned ? 'border-l-red-600' : 'border-l-amber-500'}">
         <div class="flex justify-between items-center mb-3">
           <span class="font-bold flex items-center gap-1.5 ${isBanned ? 'text-red-500 line-through font-mono text-sm' : 'text-gray-100'}">
             ${nameString} <span class="owner-crown">${crown}</span>
           </span>
-          <button onclick="window.reportPost('${post.id}')" class="text-xs bg-red-950/40 hover:bg-red-950 border border-red-900/60 px-2.5 py-1 rounded-md text-red-400 transition flex items-center gap-1 font-medium">⚠️ Flag</button>
+          <button onclick="window.reportPost('${post.id}')" class="btn-danger !p-1.5 !text-[8px]">⚠️ FLAG</button>
         </div>
-        <p class="text-gray-300 leading-relaxed mb-4 text-sm whitespace-pre-wrap">${post.content}</p>
-        <div class="flex gap-2 border-t border-gray-800/60 pt-3">
+        <div class="mb-4">
+          <p class="text-gray-300 font-medium text-sm whitespace-pre-wrap m-0">${post.content}</p>
+        </div>
+        <div class="flex gap-2 border-t border-gray-800 pt-3 mt-3">
           ${['🔥', '👍', '💀'].map(emoji => {
             const count = post.reactions?.filter((r: any) => r.emoji === emoji).length || 0;
-            return `<button onclick="window.reactPost('${post.id}', '${emoji}')" class="bg-gray-800/50 hover:bg-gray-800 border border-gray-700/60 px-3 py-1 rounded-lg text-xs font-semibold transition flex items-center gap-2">${emoji} <span>${count}</span></button>`;
+            return `<button onclick="window.reactPost('${post.id}', '${emoji}')" class="bg-gray-900 border border-gray-700 px-3 py-1 text-xs text-gray-200 transition flex items-center gap-2">${emoji} <span>${count}</span></button>`;
           }).join('')}
         </div>
       </div>
@@ -79,4 +82,3 @@ async function loadFeed() {
 };
 
 run();
-
