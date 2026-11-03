@@ -1,55 +1,197 @@
-/* Clickable Username Links in chat logs */
-.mc-username-link {
-  cursor: pointer;
-  text-decoration: underline;
-  text-decoration-style: dotted;
-  transition: color 0.1s ease;
-}
-.mc-username-link:hover {
-  color: #fbbf24 !important; /* Gold hover glow */
+@import url('https://googleapis.com');
+
+body {
+  margin: 0;
+  background: radial-gradient(circle at top, #1a1126 0%, #09050d 100%);
+  color: #f3f4f6;
+  min-height: 100vh;
+  font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
-/* Modal Frame Backdrop Shield */
-.mc-modal-overlay {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: rgba(0, 0, 0, 0.75);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  padding: 1rem;
+/* Hard pixel style headings */
+h1, h2, .input-header, .btn-primary, .btn-danger, .logout-x-btn {
+  font-family: 'Press Start 2P', monospace !important;
+  image-rendering: pixelated;
 }
 
-/* Centered profile viewer card modal window wrapper */
-.mc-profile-view-card {
+.hidden { display: none !important; }
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.items-start { align-items: flex-start; }
+.justify-between { justify-content: space-between; }
+.justify-end { justify-content: flex-end; }
+.min-h-screen { min-height: 100vh; }
+.w-full { width: 100%; }
+.max-w-4xl { max-width: 56rem; }
+.mx-auto { margin-left: auto; margin-right: auto; }
+.space-y-4 > * + * { margin-top: 1rem; }
+.space-y-6 > * + * { margin-top: 1.5rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-3 { margin-bottom: 0.75rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+.mt-2 { margin-top: 0.5rem; }
+.mt-3 { margin-top: 0.75rem; }
+.ml-1 { margin-left: 0.25rem; }
+.pt-2 { padding-top: 0.5rem; }
+.pt-3 { padding-top: 0.75rem; }
+.pb-2 { padding-bottom: 0.5rem; }
+.pb-4 { padding-bottom: 1rem; }
+.gap-2 { gap: 0.5rem; }
+.gap-3 { gap: 0.75rem; }
+.gap-4 { gap: 1rem; }
+
+/* Minecraft Slate Panel Container */
+.mc-panel {
   background-color: #2e2e2e;
   border: 4px solid #141414;
   box-shadow: inset -4px -4px 0px #1a1a1a, inset 4px 4px 0px #4a4a4a;
-  padding: 2rem;
-  width: 100%;
-  max-width: 24rem;
-  text-align: center;
+  padding: 1.5rem;
   box-sizing: border-box;
 }
 
-.view-card-avatar {
-  width: 64px;
-  height: 64px;
-  margin: 0 auto 1rem auto;
+/* Feed Cards - Individual isolated box container per post */
+.mc-card {
+  background-color: #3c3c3c;
+  border: 4px solid #1d1d1d;
+  box-shadow: inset -3px -3px 0px #242424, inset 3px 3px 0px #505050;
+  padding: 1.5rem !important;
+  margin-bottom: 1.5rem !important;
+  display: block !important;
+  box-sizing: border-box;
 }
 
-.view-card-role-badge {
-  font-family: 'Press Start 2P', monospace !important;
-  font-size: 0.55rem;
-  padding: 0.4rem 0.6rem;
-  background-color: #141414;
-  border: 2px solid #555555;
+.input-header {
+  font-size: 0.65rem;
   color: #aaaaaa;
-  display: inline-block;
-  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
 }
-.view-card-role-owner {
-  color: #fbbf24 !important;
-  border-color: #fbbf24 !important;
+
+/* Deep Command Line Style Inputs */
+.input-field {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: #000000;
+  border: 3px solid #555555;
+  color: #e0e0e0;
+  font-family: monospace;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+}
+.input-field:focus {
+  outline: none;
+  border-color: #55ff55; /* Minecraft level bar green */
+}
+
+/* Authentic Grey Brick Style Buttons */
+.btn-primary {
+  background-color: #7c7c7c;
+  color: #ffffff;
+  font-size: 0.65rem;
+  padding: 0.75rem 1.25rem;
+  border: 3px solid #000000;
+  box-shadow: inset -3px -3px 0px #4a4a4a, inset 3px 3px 0px #b8b8b8;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+.btn-primary:hover {
+  background-color: #5c5c5c;
+  box-shadow: inset -3px -3px 0px #333333, inset 3px 3px 0px #999999;
+}
+
+.btn-danger {
+  background-color: #b02e2e;
+  color: #ffffff;
+  font-size: 0.65rem;
+  padding: 0.75rem 1.25rem;
+  border: 3px solid #000000;
+  box-shadow: inset -3px -3px 0px #5c1414, inset 3px 3px 0px #f06a6a;
+  cursor: pointer;
+  text-decoration: none;
+}
+.btn-danger:hover {
+  background-color: #8c2020;
+}
+
+/* Compact Mobile Disconnect Box */
+.logout-x-btn {
+  background-color: #a82e2e;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: bold;
+  padding: 0.65rem 0.85rem;
+  border: 3px solid #000000;
+  box-shadow: inset -2px -2px 0px #5c1414, inset 2px 2px 0px #f06a6a;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+.logout-x-btn:hover {
+  background-color: #ff4747;
+  box-shadow: inset -2px -2px 0px #941111, inset 2px 2px 0px #ffa8a8;
+}
+
+/* Pixelated Minecraft Style Avatar Square Frame */
+.mc-avatar-frame {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  min-height: 42px;
+  background-color: #1a1a1a;
+  border: 3px solid #141414;
+  box-shadow: inset -3px -3px 0px #0e0e0e, inset 3px 3px 0px #383838;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+/* Fallback Character Asset Inside Frame */
+.mc-avatar-char {
+  font-family: 'Press Start 2P', monospace !important;
+  font-size: 1rem;
+  color: #ffffff;
+  text-shadow: 2px 2px 0px #000000;
+  user-select: none;
+}
+
+/* Real-Time Avatar Profile Image Asset Layout */
+.mc-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+
+/* XP Bar Graphic Accent Line */
+.xp-divider {
+  height: 6px;
+  background-color: #1a1a1a;
+  border-bottom: 2px solid #55ff55;
+  margin: 1.5rem auto;
+}
+
+/* Crown Animation */
+.owner-crown {
+  display: inline-block;
+  text-shadow: 0 0 8px #fbbf24;
+  animation: stepBounce 1s steps(2) infinite;
+}
+@keyframes stepBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+/* Extra mobile optimization fix to prevent side-scrolling */
+@media (max-width: 640px) {
+  body { padding: 0.5rem !important; }
+  .mc-panel { padding: 1rem !important; }
+  h1 { font-size: 0.85rem !important; }
+  .btn-primary, .logout-x-btn { padding: 0.5rem 0.65rem !important; font-size: 0.55rem !important; }
+  .pl-\[54px\] { padding-left: 0px !important; }
+  .ml-\[54px\] { margin-left: 0px !important; }
 }
