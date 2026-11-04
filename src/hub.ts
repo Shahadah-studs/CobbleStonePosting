@@ -1,4 +1,5 @@
 import { supabase, checkSessionGuard } from './client';
+import { cleanContentFilter } from './profanity';
 
 let currentProfile: any = null;
 
@@ -21,32 +22,57 @@ async function run() {
   document.getElementById('post-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const contentInput = document.getElementById('post-content') as HTMLInputElement;
-    if (!contentInput.value.trim()) return;
+    const rawText = contentInput.value.trim();
+    
+    if (!rawText) return;
 
-    await supabase.from('posts').insert({ user_id: currentProfile.id, content: contentInput.value });
+    const safeText = cleanContentFilter(rawText);
+
+    await supabase.from('posts').insert({ user_id: currentProfile.id, content: safeText });
     contentInput.value = '';
     loadFeed();
   });
 }
 
-function generateAvatarHTML(username: string, avatarUrl?: string) {
+function generateAvatarHTML(username: string, avatarUrl?: string, customSize?: string) {
+  const sizeStyle = customSize ? `style="width:${customSize};height:${customSize};min-width:${customSize};min-height:${customSize};"` : '';
   if (avatarUrl && avatarUrl.trim() !== '') {
     return `
-      <div class="mc-avatar-frame">
+      <div class="mc-avatar-frame" ${sizeStyle}>
         <img src="${avatarUrl}" class="mc-avatar-img" alt="${username}">
       </div>
     `;
   }
 
-  // Generate a distinct block color background matrix based on username strings
   const fallbackColors = ['#3f3f3f', '#7a2222', '#1b5a7a', '#2c6d2c']; 
   const charCodeSum = username.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
   const selectedBgColor = fallbackColors[charCodeSum % fallbackColors.length];
   const firstLetter = username.charAt(0).toUpperCase();
 
   return `
-    <div class="mc-avatar-frame" style="background-color: ${selectedBgColor};">
+    <div class="mc-avatar-frame" ${sizeStyle} style="background-color: ${selectedBgColor};">
       <span class="mc-avatar-char">${firstLetter}</span>
+    </div>
+  `;
+}
+
+// Scans text streams for web URLs and generates interactive media preview logs
+function linkPreviewEngine(text: string): string {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const matches = text.match(urlRegex);
+  
+  if (!matches) return '';
+
+  const firstUrl = matches[0];
+  let displayTitle = "🔗 EXTERNAL LINK TRANSMISSION";
+  
+  if (firstUrl.includes('youtube.com') || firstUrl.includes('youtu.be')) displayTitle = "📺 YOUTUBE VIDEO";
+  if (firstUrl.includes('imgur.com')) displayTitle = "IMGUR IMAGE CAPTURE";
+  if (firstUrl.includes('namemc.com')) displayTitle = "MINECRAFT SKIN DATA";
+  return `
+    <div class="mc-link-preview">
+      <a href="${firstUrl}" target="_blank" class="mc-link-preview-title">${displayTitle}</a>
+      <span class="mc-link-preview-url">${firstUrl}</span>
     </div>
   `;
 }
@@ -58,8 +84,10 @@ function renderHeaderBadge() {
   
   container.className = "flex items-center gap-2";
   container.innerHTML = `
-    ${avatarMark}
-    <span class="text-xs font-bold text-gray-100 flex items-center">${currentProfile.username} ${crown}</span>
+    <div onclick="window.viewPlayerProfile('${currentProfile.id}')" style="cursor:pointer;" class="flex items-center gap-2">
+      ${avatarMark}
+      <span class="text-xs font-bold text-gray-100 flex items-center">${currentProfile.username} ${crown}</span>
+    </div>
   `;
 }
 
@@ -69,28 +97,29 @@ async function loadFeed() {
 
   if (!posts) return;
 
-  // Loops and wraps EACH post inside its own independent box layout container block (.mc-card)
   container.innerHTML = posts.map(post => {
     const isBanned = post.profiles?.is_banned;
     const nameString = isBanned ? `[BANNED] ${post.profiles?.username}` : `${post.profiles?.username}`;
     const crown = post.profiles?.role === 'owner' && !isBanned ? '👑' : '';
-    
-    // Compute block pixel graphics fallback metadata
     const avatarLayout = generateAvatarHTML(post.profiles?.username || 'User', post.profiles?.avatar_url);
+    
+    // Auto generate previews if links exist inside text records
+    const previewLayout = linkPreviewEngine(post.content);
 
     return `
       <div class="mc-card border-l-4 ${isBanned ? 'border-l-red-600' : 'border-l-amber-500'}">
         <div class="flex justify-between items-start mb-3">
           <div class="flex items-center gap-3">
             ${avatarLayout}
-            <span class="font-bold flex items-center gap-1.5 ${isBanned ? 'text-red-500 line-through font-mono text-sm' : 'text-gray-100'}">
+            <span onclick="window.viewPlayerProfile('${post.user_id}')" class="font-bold mc-username-clickable flex items-center gap-1.5 ${isBanned ? 'text-red-500 line-through font-mono text-sm' : 'text-gray-100'}">
               ${nameString} <span class="owner-crown">${crown}</span>
             </span>
           </div>
           <button onclick="window.reportPost('${post.id}')" class="btn-danger !p-1.5 !text-[8px]">⚐</button>
         </div>
-        <div class="mb-4 pl-[54px]">
+        <div class="mb-2 pl-[54px]">
           <p class="text-gray-300 font-medium text-sm whitespace-pre-wrap m-0">${post.content}</p>
+          ${previewLayout}
         </div>
         <div class="flex gap-2 border-t border-gray-800 pt-3 mt-3 ml-[54px]">
           ${['🔥', '👍', '💀', '🤯'].map(emoji => {
@@ -103,16 +132,41 @@ async function loadFeed() {
   }).join('');
 }
 
+// REUSABLE POP-UP INVENTORY WINDOW MODAL FUNCTION FOR PLAYER ACCOUNTS
+(window as any).viewPlayerProfile = async (userId: string) => {
+  const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
+  if (error || !profile) return;
+
+  const oldModal = document.getElementById('mc-profile-modal');
+  if (oldModal) oldModal.remove();
+
+  const avatarHtml = generateAvatarHTML(profile.username, profile.avatar_url, "48px");
+  const rankLabel = profile.role === 'owner' ? '👑' : profile.role === 'admin' ? '🛡️' : '🗡️';
+
+  const modal = document.createElement('div');
+  modal.id = 'mc-profile-modal';
+  modal.className = 'mc-modal-overlay';
+  modal.innerHTML = `
+    <div class="mc-modal-card">
+      <div class="mc-modal-avatar">${avatarHtml}</div>
+      <h2 style="font-size:0.85rem; margin-bottom:1rem;" class="${profile.is_banned ? 'text-red-500 line-through' : 'text-gray-100'}">${profile.username}</h2>
+      <p style="font-family:'Press Start 2P', monospace; font-size:0.55rem; color:#aaaaaa; margin:0 0 1.5rem 0;">RANK: ${rankLabel}</p>
+      <button onclick="document.getElementById('mc-profile-modal').remove()" class="btn-primary w-full" style="font-size:0.55rem;">CLOSE VIEW</button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+};
+
 (window as any).reactPost = async (postId: string, emoji: string) => {
   await supabase.from('reactions').upsert({ post_id: postId, user_id: currentProfile.id, emoji });
   loadFeed();
 };
 
 (window as any).reportPost = async (postId: string) => {
-  const reason = prompt("Enter a actual reason for flagging this content:");
+  const reason = prompt("Enter an actual reason for flagging this content:");
   if (!reason) return;
   await supabase.from('reports').insert({ post_id: postId, reporter_id: currentProfile.id, reason });
-  alert("Report transmitted to admin panel.");
+  alert("Report sent to admin panel.");
 };
 
 run();
