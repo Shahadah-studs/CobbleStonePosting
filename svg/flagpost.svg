@@ -1,0 +1,15 @@
+<svg xmlns="http://w3.org" viewBox="0 0 24 24" width="100%" height="100%">
+  <!-- Background Chart Lines (Representing data/analytics) -->
+  <path d="M6 17l3-3.5 2.5 2.5L15.5 11l2.5 2.5" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Document Border / Page -->
+  <path d="M15 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Folded Corner (Page Fold) -->
+  <path d="M14 3v5h5" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Report Text Lines -->
+  <line x1="6" y1="21" x2="18" y2="21" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round"/>
+  <line x1="6" y1="17" x2="18" y2="17" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round"/>
+  <line x1="6" y1="13" x2="10" y2="13" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round"/>
+</svg>
