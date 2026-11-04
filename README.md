@@ -260,7 +260,7 @@ This site was made by Shahadah-studs alone.
 
 ## License
 
-No explicit license file was included in the repo at the time of writing. Please check the repository for licensing details before public reuse or distribution.
+A property Licence
 
 ---
 
