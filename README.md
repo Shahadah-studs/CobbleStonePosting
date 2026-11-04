@@ -20,10 +20,10 @@ This project was built by Shahadah-studs alone, from the frontend design to the 
 
 The repository language breakdown is:
 
-- HTML: 38.9%
-- TypeScript: 36.7%
-- CSS: 23.3%
-- JavaScript: 1.1%
+- HTML
+- TypeScript
+- CSS 
+- JavaScript
 
 ## Project Overview
 
