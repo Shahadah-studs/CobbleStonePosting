@@ -87,13 +87,13 @@ async function loadFeed() {
               ${nameString} <span class="owner-crown">${crown}</span>
             </span>
           </div>
-          <button onclick="window.reportPost('${post.id}')" class="btn-danger !p-1.5 !text-[8px]">⚠️ FLAG</button>
+          <button onclick="window.reportPost('${post.id}')" class="btn-danger !p-1.5 !text-[8px]">FLAG</button>
         </div>
         <div class="mb-4 pl-[54px]">
           <p class="text-gray-300 font-medium text-sm whitespace-pre-wrap m-0">${post.content}</p>
         </div>
         <div class="flex gap-2 border-t border-gray-800 pt-3 mt-3 ml-[54px]">
-          ${['🔥', '👍', '💀'].map(emoji => {
+          ${['🔥', '👍', '💀', '🤯'].map(emoji => {
             const count = post.reactions?.filter((r: any) => r.emoji === emoji).length || 0;
             return `<button onclick="window.reactPost('${post.id}', '${emoji}')" class="bg-gray-900 border border-gray-700 px-3 py-1 text-xs text-gray-200 transition flex items-center gap-2">${emoji} <span>${count}</span></button>`;
           }).join('')}
