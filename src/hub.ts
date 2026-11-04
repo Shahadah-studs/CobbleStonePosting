@@ -141,7 +141,7 @@ async function loadFeed() {
   if (oldModal) oldModal.remove();
 
   const avatarHtml = generateAvatarHTML(profile.username, profile.avatar_url, "48px");
-  const rankLabel = profile.role === 'owner' ? '👑' : profile.role === 'admin' ? '🛡️' : '🗡️';
+  const rankLabel = profile.role === 'owner' ? '👑 Owner' : profile.role === 'admin' ? '🛡️ Staff' : '🗡️ User';
 
   const modal = document.createElement('div');
   modal.id = 'mc-profile-modal';
