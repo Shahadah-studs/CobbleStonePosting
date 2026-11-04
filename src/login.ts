@@ -3,7 +3,7 @@ import { supabase } from './client';
 const urlParams = new URLSearchParams(window.location.search);
 const errorDiv = document.getElementById('auth-error')!;
 if (urlParams.get('error') === 'banned') {
-  errorDiv.innerText = "🔴 Oh no! You are BANNED. Logged out NOW.";
+  errorDiv.innerText = "🛑 Oh no! You are BANNED. Logged out NOW.";
   errorDiv.classList.remove('hidden');
 }
 
