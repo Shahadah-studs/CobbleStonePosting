@@ -1,0 +1,126 @@
+
+  @import url('https://googleapis.com');
+
+  body {
+    margin: 0;
+    background: radial-gradient(circle at top, #1a1126 0%, #09050d 100%);
+    color: #f3f4f6;
+    min-height: 100vh;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    box-sizing: border-box;
+  }
+
+  /* Police Pixel Minecraft obligatoire */
+  h2, label, .btn-primary, .btn-cancel {
+    font-family: 'Press Start 2P', monospace !important;
+    image-rendering: pixelated;
+    text-shadow: 2px 2px 0px #000000;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+    color: #eab308; /* Couleur Or / Étoile */
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    letter-spacing: -0.05em;
+  }
+
+  /* Boîtier d'inventaire en ardoise (Deepslate Panel) */
+  .mc-panel {
+    background-color: #2e2e2e;
+    border: 4px solid #141414;
+    box-shadow: inset -4px -4px 0px #1a1a1a, inset 4px 4px 0px #4a4a4a;
+    padding: 2rem;
+    width: 100%;
+    max-width: 28rem;
+    box-sizing: border-box;
+  }
+
+  .form-group {
+    margin-bottom: 1.25rem;
+  }
+
+  label {
+    display: block;
+    font-size: 0.6rem;
+    color: #aaaaaa;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* Zones d'écriture de style console de commande noire */
+  .input-field {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background-color: #000000;
+    border: 3px solid #555555;
+    color: #e0e0e0;
+    font-family: monospace;
+    font-size: 0.95rem;
+    box-sizing: border-box;
+  }
+
+  .input-field:focus {
+    outline: none;
+    border-color: #55ff55; /* Vert barre d'XP */
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+
+  /* Bouton brique grise Minecraft */
+  .btn-primary {
+    flex: 1;
+    background-color: #7c7c7c;
+    color: #ffffff;
+    font-size: 0.65rem;
+    font-weight: bold;
+    padding: 0.85rem 1rem;
+    border: 3px solid #000000;
+    box-shadow: inset -3px -3px 0px #4a4a4a, inset 3px 3px 0px #b8b8b8;
+    cursor: pointer;
+    box-sizing: border-box;
+  }
+
+  .btn-primary:hover {
+    background-color: #5c5c5c;
+    box-shadow: inset -3px -3px 0px #333333, inset 3px 3px 0px #999999;
+  }
+
+  /* Bouton d'annulation rouge */
+  .btn-cancel {
+    flex: 1;
+    background-color: #b02e2e;
+    color: #ffffff;
+    font-size: 0.65rem;
+    font-weight: bold;
+    padding: 0.85rem 1rem;
+    border: 3px solid #000000;
+    box-shadow: inset -3px -3px 0px #5c1414, inset 3px 3px 0px #f06a6a;
+    cursor: pointer;
+    text-decoration: none;
+    text-align: center;
+    display: block;
+    box-sizing: border-box;
+  }
+
+  .btn-cancel:hover {
+    background-color: #8c2020;
+    box-shadow: inset -3px -3px 0px #5c1414, inset 3px 3px 0px #ffa8a8;
+  }
+
+  @media (max-width: 480px) {
+    .mc-panel { padding: 1.25rem; }
+    .action-buttons { flex-direction: column; gap: 0.75rem; }
+  }
+
