@@ -138,7 +138,7 @@ async function loadFeed() {
           ${previewLayout}
         </div>
         <div class="flex gap-2 border-t border-gray-800 pt-3 mt-3 ml-[54px]">
-          ${['🔥', '👍', '💀', '🤯'].map(emoji => {
+          ${['🔥', '👍', '💀', '🤯', '🥀'].map(emoji => {
             const count = post.reactions?.filter((r: any) => r.emoji === emoji).length || 0;
             return `<button onclick="window.reactPost('${post.id}', '${emoji}')" class="bg-gray-900 border border-gray-700 px-3 py-1 text-xs text-gray-200 transition flex items-center gap-2">${emoji} <span>${count}</span></button>`;
           }).join('')}
