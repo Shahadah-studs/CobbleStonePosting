@@ -86,7 +86,7 @@ async function loadAdminData() {
   const { data: userPosts } = await supabase.from('posts').select('id').eq('user_id', userId).order('created_at', { ascending: false }).limit(1);
   
   if (!userPosts || userPosts.length === 0) {
-    alert("This user hasn't posted anything yet, cannot attach a warning code to their log history.");
+    alert("This user hasn't posted anything yet, cannot attach a warning to their log history.");
     return;
   }
 
@@ -103,7 +103,7 @@ async function loadAdminData() {
   const totalWarnsAfterClick = currentWarns + 1;
   if (totalWarnsAfterClick >= 3) {
     await supabase.from('profiles').update({ is_banned: true }).eq('id', userId);
-    alert(`⚠️ User reached ${totalWarnsAfterClick}/3 warnings. System automatically executed an INSTANT LOGOUT & PERMA BAN.`);
+    alert(`User reached ${totalWarnsAfterClick}/3 warnings. System automatically executed an INSTANT LOGOUT & STABLE BAN.`);
   } else {
     alert(`Warning recorded. User is now at ${totalWarnsAfterClick}/3 warnings.`);
   }
