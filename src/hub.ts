@@ -2,17 +2,13 @@ import { supabase, checkSessionGuard } from './client';
 import { cleanContentFilter } from './profanity';
 
 let currentProfile: any = null;
-let currentLimit = 5;
+let currentLimit = 4; 
 
 async function run() {
   currentProfile = await checkSessionGuard();
   if (!currentProfile) return;
 
   renderHeaderBadge();
-  
-  /
-  await checkPendingWarnings();
-
   loadFeed();
 
   if (currentProfile.role === 'owner' || currentProfile.role === 'admin') {
@@ -37,32 +33,6 @@ async function run() {
     currentLimit = 4; 
     loadFeed();
   });
-}
-
-async function checkPendingWarnings() {
-  if (!currentProfile) return;
-
-  const { data: userPosts } = await supabase.from('posts').select('id').eq('user_id', currentProfile.id);
-  if (!userPosts || userPosts.length === 0) return;
-
-  const postIds = userPosts.map(p => p.id);
-
-  const { data: pendingWarns } = await supabase
-    .from('reports')
-    .select('id, reason')
-    .in('post_id', postIds)
-    .like('reason', '[WARN]%');
-
-  if (pendingWarns && pendingWarns.length > 0) {
-    const activeWarn = pendingWarns[0];
-    const cleanAlertMessage = activeWarn.reason.replace('[WARN] ', '');
-
-    // Native browser pop-up prompt box triggers instantly on login/visit
-    alert(`MINESOCIAL STAFF WARNING:\n\n${cleanAlertMessage}`);
-
-    // Deletes warning token from database reports log history so it only fires once
-    await supabase.from('reports').delete().eq('id', activeWarn.id);
-  }
 }
 
 function generateAvatarHTML(username: string, avatarUrl?: string, customSize?: string) {
@@ -157,7 +127,6 @@ async function loadFeed() {
         <div class="flex justify-between items-start mb-3">
           <div class="flex items-center gap-3">
             ${avatarLayout}
-            <!-- FIXED: Clickable username listener attached safely to the paginated feed builder map loop -->
             <span onclick="window.viewPlayerProfile('${post.user_id}')" class="font-bold mc-username-clickable flex items-center gap-1.5 ${isBanned ? 'text-red-500 line-through font-mono text-sm' : 'text-gray-100'}">
               ${nameString} <span class="owner-crown">${crown}</span>
             </span>
@@ -215,7 +184,7 @@ async function loadFeed() {
 };
 
 (window as any).triggerLoadMore = () => {
-  currentLimit += 4; 
+  currentLimit += 4; // Steps down by adding 4 extra rows per button click
   loadFeed();
 };
 
