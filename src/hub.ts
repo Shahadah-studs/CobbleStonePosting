@@ -2,13 +2,17 @@ import { supabase, checkSessionGuard } from './client';
 import { cleanContentFilter } from './profanity';
 
 let currentProfile: any = null;
-let currentLimit = 5; 
+let currentLimit = 5;
 
 async function run() {
   currentProfile = await checkSessionGuard();
   if (!currentProfile) return;
 
   renderHeaderBadge();
+  
+  /
+  await checkPendingWarnings();
+
   loadFeed();
 
   if (currentProfile.role === 'owner' || currentProfile.role === 'admin') {
@@ -30,23 +34,57 @@ async function run() {
 
     await supabase.from('posts').insert({ user_id: currentProfile.id, content: safeText });
     contentInput.value = '';
-    
-    // Reset limit on new post submission so user can view their new message instantly
-    currentLimit = 2; 
+    currentLimit = 4; 
     loadFeed();
   });
 }
 
-function generateAvatarHTML(username: string, avatarUrl?: string) {
-  if (avatarUrl && avatarUrl.trim() !== '') {
-    return `<div class="mc-avatar-frame"><img src="${avatarUrl}" class="mc-avatar-img" alt="${username}"></div>`;
+async function checkPendingWarnings() {
+  if (!currentProfile) return;
+
+  const { data: userPosts } = await supabase.from('posts').select('id').eq('user_id', currentProfile.id);
+  if (!userPosts || userPosts.length === 0) return;
+
+  const postIds = userPosts.map(p => p.id);
+
+  const { data: pendingWarns } = await supabase
+    .from('reports')
+    .select('id, reason')
+    .in('post_id', postIds)
+    .like('reason', '[WARN]%');
+
+  if (pendingWarns && pendingWarns.length > 0) {
+    const activeWarn = pendingWarns[0];
+    const cleanAlertMessage = activeWarn.reason.replace('[WARN] ', '');
+
+    // Native browser pop-up prompt box triggers instantly on login/visit
+    alert(`MINESOCIAL STAFF WARNING:\n\n${cleanAlertMessage}`);
+
+    // Deletes warning token from database reports log history so it only fires once
+    await supabase.from('reports').delete().eq('id', activeWarn.id);
   }
+}
+
+function generateAvatarHTML(username: string, avatarUrl?: string, customSize?: string) {
+  const sizeStyle = customSize ? `style="width:${customSize};height:${customSize};min-width:${customSize};min-height:${customSize};"` : '';
+  if (avatarUrl && avatarUrl.trim() !== '') {
+    return `
+      <div class="mc-avatar-frame" ${sizeStyle}>
+        <img src="${avatarUrl}" class="mc-avatar-img" alt="${username}">
+      </div>
+    `;
+  }
+
   const fallbackColors = ['#3f3f3f', '#7a2222', '#1b5a7a', '#2c6d2c']; 
   const charCodeSum = username.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
   const selectedBgColor = fallbackColors[charCodeSum % fallbackColors.length];
   const firstLetter = username.charAt(0).toUpperCase();
 
-  return `<div class="mc-avatar-frame" style="background-color: ${selectedBgColor};"><span class="mc-avatar-char">${firstLetter}</span></div>`;
+  return `
+    <div class="mc-avatar-frame" ${sizeStyle} style="background-color: ${selectedBgColor};">
+      <span class="mc-avatar-char">${firstLetter}</span>
+    </div>
+  `;
 }
 
 function linkPreviewEngine(text: string): string {
@@ -85,22 +123,22 @@ function renderHeaderBadge() {
   
   container.className = "flex items-center gap-2";
   container.innerHTML = `
-    ${avatarMark}
-    <span class="text-xs font-bold text-gray-100 flex items-center">${currentProfile.username} ${crown}</span>
+    <div onclick="window.viewPlayerProfile('${currentProfile.id}')" style="cursor:pointer;" class="flex items-center gap-2">
+      ${avatarMark}
+      <span class="text-xs font-bold text-gray-100 flex items-center">${currentProfile.username} ${crown}</span>
+    </div>
   `;
 }
 
 async function loadFeed() {
   const container = document.getElementById('feed-container')!;
   
-  // Implements strict row extraction limit bounds (e.g. 0 to 1 fetches exactly 2 rows)
   const { data: posts, error: postError } = await supabase
     .from('posts')
     .select('*, profiles(*), reactions(*)')
     .order('created_at', { ascending: false })
     .range(0, currentLimit - 1);
 
-  // Checks total database row density count to see if the button is required
   const { count: totalCount } = await supabase
     .from('posts')
     .select('*', { count: 'exact', head: true });
@@ -119,7 +157,8 @@ async function loadFeed() {
         <div class="flex justify-between items-start mb-3">
           <div class="flex items-center gap-3">
             ${avatarLayout}
-            <span class="font-bold flex items-center gap-1.5 ${isBanned ? 'text-red-500 line-through font-mono text-sm' : 'text-gray-100'}">
+            <!-- FIXED: Clickable username listener attached safely to the paginated feed builder map loop -->
+            <span onclick="window.viewPlayerProfile('${post.user_id}')" class="font-bold mc-username-clickable flex items-center gap-1.5 ${isBanned ? 'text-red-500 line-through font-mono text-sm' : 'text-gray-100'}">
               ${nameString} <span class="owner-crown">${crown}</span>
             </span>
           </div>
@@ -139,11 +178,10 @@ async function loadFeed() {
     `;
   }).join('');
 
-  // If there are more rows left to extract, append the grey brick layout button block
   if (totalCount && currentLimit < totalCount) {
     feedHTML += `
       <div class="flex justify-center mt-6 mb-8">
-        <button id="load-more-btn" onclick="window.triggerLoadMore()" class="btn-primary" style="font-size: 0.75rem; padding: 1rem 2rem;">LOAD MORE</button>
+        <button id="load-more-btn" onclick="window.triggerLoadMore()" class="btn-primary" style="font-size: 0.75rem; padding: 1rem 2rem;">LOAD MORE POSTS</button>
       </div>
     `;
   }
@@ -151,9 +189,33 @@ async function loadFeed() {
   container.innerHTML = feedHTML;
 }
 
-// Global action handler hook: Extends query range context boundary windows by 2
+// Pop-up profile view card display window generator
+(window as any).viewPlayerProfile = async (userId: string) => {
+  const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
+  if (error || !profile) return;
+
+  const oldModal = document.getElementById('mc-profile-modal');
+  if (oldModal) oldModal.remove();
+
+  const avatarHtml = generateAvatarHTML(profile.username, profile.avatar_url, "48px");
+  const rankLabel = profile.role === 'owner' ? '👑 OWNER' : profile.role === 'admin' ? '🛡️ MODERATOR' : '🗡️ PLAYER';
+
+  const modal = document.createElement('div');
+  modal.id = 'mc-profile-modal';
+  modal.className = 'mc-modal-overlay';
+  modal.innerHTML = `
+    <div class="mc-modal-card">
+      <div class="mc-modal-avatar">${avatarHtml}</div>
+      <h2 style="font-size:0.85rem; margin-bottom:1rem;" class="${profile.is_banned ? 'text-red-500 line-through' : 'text-gray-100'}">${profile.username}</h2>
+      <p style="font-family:'Press Start 2P', monospace; font-size:0.55rem; color:#aaaaaa; margin:0 0 1.5rem 0;">RANK: ${rankLabel}</p>
+      <button onclick="document.getElementById('mc-profile-modal').remove()" class="btn-primary w-full" style="font-size:0.55rem;">CLOSE VIEW</button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+};
+
 (window as any).triggerLoadMore = () => {
-  currentLimit += 2;
+  currentLimit += 4; 
   loadFeed();
 };
 
