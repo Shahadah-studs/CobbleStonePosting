@@ -143,7 +143,7 @@ async function loadFeed() {
   if (totalCount && currentLimit < totalCount) {
     feedHTML += `
       <div class="flex justify-center mt-6 mb-8">
-        <button id="load-more-btn" onclick="window.triggerLoadMore()" class="btn-primary" style="font-size: 0.75rem; padding: 1rem 2rem;">LOAD MORE POSTS</button>
+        <button id="load-more-btn" onclick="window.triggerLoadMore()" class="btn-primary" style="font-size: 0.75rem; padding: 1rem 2rem;">LOAD MORE</button>
       </div>
     `;
   }
