@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Reads automatically from your .env file locally or Vercel config engine in production
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
