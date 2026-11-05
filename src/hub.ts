@@ -64,10 +64,10 @@ function linkPreviewEngine(text: string): string {
   if (!matches) return '';
 
   const firstUrl = matches[0];
-  let displayTitle = "🔗 EXTERNAL LINK TRANSMISSION";
+  let displayTitle = "🔗 EXTERNAL LINK";
   
   if (firstUrl.includes('youtube.com') || firstUrl.includes('youtu.be')) displayTitle = "📺 YOUTUBE VIDEO";
-  if (firstUrl.includes('imgur.com')) displayTitle = "IMGUR IMAGE CAPTURE";
+  if (firstUrl.includes('imgur.com', 'imgbb.com')) displayTitle = "LINKED IMAGE CAPTURE";
   if (firstUrl.includes('namemc.com')) displayTitle = "MINECRAFT SKIN DATA";
   return `
     <div class="mc-link-preview">
