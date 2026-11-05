@@ -2,7 +2,7 @@ import { supabase, checkSessionGuard } from './client';
 
 async function run() {
   const profile = await checkSessionGuard();
-  // Vérifie si l'utilisateur est bien l'Owner ou un Admin
+
   if (!profile || (profile.role !== 'owner' && profile.role !== 'admin')) {
     window.location.href = '/index.html';
     return;
@@ -11,15 +11,15 @@ async function run() {
 }
 
 async function loadAdminData() {
-  // Récupère les profils et tous les avertissements enregistrés dans la table reports
+  
   const { data: profiles } = await supabase.from('profiles').select('*');
   const { data: reports } = await supabase.from('reports').select('*, posts(*)');
 
-  // Compte le nombre d'avertissements ("WARN") reçus par chaque utilisateur
+ 
   const warnCounts: { [key: string]: number } = {};
   (reports || []).forEach(r => {
     if (r.reason && r.reason.startsWith('[WARN]')) {
-      // Extrait l'ID de l'utilisateur qui a posté le contenu signalé
+     
       const targetUserId = r.posts?.user_id;
       if (targetUserId) {
         warnCounts[targetUserId] = (warnCounts[targetUserId] || 0) + 1;
@@ -27,7 +27,7 @@ async function loadAdminData() {
     }
   });
 
-  // 1. GÉNÉRATION DE LA LISTE DES UTILISATEURS
+
   document.getElementById('admin-users-list')!.innerHTML = (profiles || []).map(u => {
     const currentWarns = warnCounts[u.id] || 0;
     const isBanned = u.is_banned;
@@ -60,7 +60,7 @@ async function loadAdminData() {
     `;
   }).join('');
 
-  // 2. GÉNÉRATION DU FLUX DES SIGNALEMENTS ET CONTENUS INTERCEPTÉS
+  
   document.getElementById('admin-reports-list')!.innerHTML = (reports || []).map(r => {
     const isSystemWarn = r.reason && r.reason.startsWith('[WARN]');
     const displayReason = isSystemWarn ? r.reason.replace('[WARN] ', '') : r.reason;
@@ -77,12 +77,11 @@ async function loadAdminData() {
   }).join('');
 }
 
-// ACTION : TRANSMETTRE UN AVERTISSEMENT (WARN)
+
 (window as any).issueWarn = async (userId: string, currentWarns: number) => {
   const reason = prompt("Enter the reason for this official warning (e.g., Toxic behavior, Spam):");
   if (!reason || !reason.trim()) return;
 
-  // 1. Récupère le dernier post de l'utilisateur ciblé pour y attacher l'avertissement dans la table reports
   const { data: userPosts } = await supabase.from('posts').select('id').eq('user_id', userId).order('created_at', { ascending: false }).limit(1);
   
   if (!userPosts || userPosts.length === 0) {
