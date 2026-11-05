@@ -2,7 +2,7 @@ import { supabase, checkSessionGuard } from './client';
 import { cleanContentFilter } from './profanity';
 
 let currentProfile: any = null;
-let currentLimit = 2; 
+let currentLimit = 5; 
 
 async function run() {
   currentProfile = await checkSessionGuard();
