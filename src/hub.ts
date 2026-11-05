@@ -2,6 +2,7 @@ import { supabase, checkSessionGuard } from './client';
 import { cleanContentFilter } from './profanity';
 
 let currentProfile: any = null;
+let currentLimit = 2; 
 
 async function run() {
   currentProfile = await checkSessionGuard();
@@ -25,38 +26,29 @@ async function run() {
     const rawText = contentInput.value.trim();
     
     if (!rawText) return;
-
     const safeText = cleanContentFilter(rawText);
 
     await supabase.from('posts').insert({ user_id: currentProfile.id, content: safeText });
     contentInput.value = '';
+    
+    // Reset limit on new post submission so user can view their new message instantly
+    currentLimit = 2; 
     loadFeed();
   });
 }
 
-function generateAvatarHTML(username: string, avatarUrl?: string, customSize?: string) {
-  const sizeStyle = customSize ? `style="width:${customSize};height:${customSize};min-width:${customSize};min-height:${customSize};"` : '';
+function generateAvatarHTML(username: string, avatarUrl?: string) {
   if (avatarUrl && avatarUrl.trim() !== '') {
-    return `
-      <div class="mc-avatar-frame" ${sizeStyle}>
-        <img src="${avatarUrl}" class="mc-avatar-img" alt="${username}">
-      </div>
-    `;
+    return `<div class="mc-avatar-frame"><img src="${avatarUrl}" class="mc-avatar-img" alt="${username}"></div>`;
   }
-
   const fallbackColors = ['#3f3f3f', '#7a2222', '#1b5a7a', '#2c6d2c']; 
   const charCodeSum = username.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
   const selectedBgColor = fallbackColors[charCodeSum % fallbackColors.length];
   const firstLetter = username.charAt(0).toUpperCase();
 
-  return `
-    <div class="mc-avatar-frame" ${sizeStyle} style="background-color: ${selectedBgColor};">
-      <span class="mc-avatar-char">${firstLetter}</span>
-    </div>
-  `;
+  return `<div class="mc-avatar-frame" style="background-color: ${selectedBgColor};"><span class="mc-avatar-char">${firstLetter}</span></div>`;
 }
 
-// Scans text streams for web URLs and generates interactive media preview logs
 function linkPreviewEngine(text: string): string {
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   const matches = text.match(urlRegex);
@@ -65,13 +57,22 @@ function linkPreviewEngine(text: string): string {
 
   const firstUrl = matches[0];
   let displayTitle = "🔗 EXTERNAL LINK";
-  
-  if (firstUrl.includes('youtube.com') || firstUrl.includes('youtu.be')) displayTitle = "📺 YOUTUBE VIDEO";
-  if (firstUrl.includes('imgur.com', 'imgbb.com')) displayTitle = "LINKED IMAGE CAPTURE";
-  if (firstUrl.includes('namemc.com')) displayTitle = "MINECRAFT SKIN DATA";
+  let themeColor = "#55ffff";
+
+  if (firstUrl.includes('youtube.com') || firstUrl.includes('youtu.be')) {
+    displayTitle = "📺 YOUTUBE VIDEO";
+    themeColor = "#ff5555";
+  } else if (firstUrl.includes('imgur.com')) {
+    displayTitle = "IMGUR IMAGE";
+    themeColor = "#55ff55";
+  } else if (firstUrl.includes('namemc.com')) {
+    displayTitle = "NAMEMC PLAYER PROFILE";
+    themeColor = "#ffaa00";
+  }
+
   return `
-    <div class="mc-link-preview">
-      <a href="${firstUrl}" target="_blank" class="mc-link-preview-title">${displayTitle}</a>
+    <div class="mc-link-preview" style="border-left: 3px solid ${themeColor};">
+      <a href="${firstUrl}" target="_blank" class="mc-link-preview-title" style="color: ${themeColor} !important;">${displayTitle}</a>
       <span class="mc-link-preview-url">${firstUrl}</span>
     </div>
   `;
@@ -84,26 +85,33 @@ function renderHeaderBadge() {
   
   container.className = "flex items-center gap-2";
   container.innerHTML = `
-    <div onclick="window.viewPlayerProfile('${currentProfile.id}')" style="cursor:pointer;" class="flex items-center gap-2">
-      ${avatarMark}
-      <span class="text-xs font-bold text-gray-100 flex items-center">${currentProfile.username} ${crown}</span>
-    </div>
+    ${avatarMark}
+    <span class="text-xs font-bold text-gray-100 flex items-center">${currentProfile.username} ${crown}</span>
   `;
 }
 
 async function loadFeed() {
   const container = document.getElementById('feed-container')!;
-  const { data: posts } = await supabase.from('posts').select('*, profiles(*), reactions(*)').order('created_at', { ascending: false });
+  
+  // Implements strict row extraction limit bounds (e.g. 0 to 1 fetches exactly 2 rows)
+  const { data: posts, error: postError } = await supabase
+    .from('posts')
+    .select('*, profiles(*), reactions(*)')
+    .order('created_at', { ascending: false })
+    .range(0, currentLimit - 1);
 
-  if (!posts) return;
+  // Checks total database row density count to see if the button is required
+  const { count: totalCount } = await supabase
+    .from('posts')
+    .select('*', { count: 'exact', head: true });
 
-  container.innerHTML = posts.map(post => {
+  if (postError || !posts) return;
+
+  let feedHTML = posts.map(post => {
     const isBanned = post.profiles?.is_banned;
     const nameString = isBanned ? `[BANNED] ${post.profiles?.username}` : `${post.profiles?.username}`;
     const crown = post.profiles?.role === 'owner' && !isBanned ? '👑' : '';
     const avatarLayout = generateAvatarHTML(post.profiles?.username || 'User', post.profiles?.avatar_url);
-    
-    // Auto generate previews if links exist inside text records
     const previewLayout = linkPreviewEngine(post.content);
 
     return `
@@ -111,13 +119,13 @@ async function loadFeed() {
         <div class="flex justify-between items-start mb-3">
           <div class="flex items-center gap-3">
             ${avatarLayout}
-            <span onclick="window.viewPlayerProfile('${post.user_id}')" class="font-bold mc-username-clickable flex items-center gap-1.5 ${isBanned ? 'text-red-500 line-through font-mono text-sm' : 'text-gray-100'}">
+            <span class="font-bold flex items-center gap-1.5 ${isBanned ? 'text-red-500 line-through font-mono text-sm' : 'text-gray-100'}">
               ${nameString} <span class="owner-crown">${crown}</span>
             </span>
           </div>
           <button onclick="window.reportPost('${post.id}')" class="btn-danger !p-1.5 !text-[8px]">⚐</button>
         </div>
-        <div class="mb-2 pl-[54px]">
+        <div class="mb-4 pl-[54px]">
           <p class="text-gray-300 font-medium text-sm whitespace-pre-wrap m-0">${post.content}</p>
           ${previewLayout}
         </div>
@@ -130,31 +138,23 @@ async function loadFeed() {
       </div>
     `;
   }).join('');
+
+  // If there are more rows left to extract, append the grey brick layout button block
+  if (totalCount && currentLimit < totalCount) {
+    feedHTML += `
+      <div class="flex justify-center mt-6 mb-8">
+        <button id="load-more-btn" onclick="window.triggerLoadMore()" class="btn-primary" style="font-size: 0.75rem; padding: 1rem 2rem;">LOAD MORE POSTS</button>
+      </div>
+    `;
+  }
+
+  container.innerHTML = feedHTML;
 }
 
-// REUSABLE POP-UP INVENTORY WINDOW MODAL FUNCTION FOR PLAYER ACCOUNTS
-(window as any).viewPlayerProfile = async (userId: string) => {
-  const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
-  if (error || !profile) return;
-
-  const oldModal = document.getElementById('mc-profile-modal');
-  if (oldModal) oldModal.remove();
-
-  const avatarHtml = generateAvatarHTML(profile.username, profile.avatar_url, "48px");
-  const rankLabel = profile.role === 'owner' ? '👑 Owner' : profile.role === 'admin' ? '🛡️ Staff' : '🗡️ User';
-
-  const modal = document.createElement('div');
-  modal.id = 'mc-profile-modal';
-  modal.className = 'mc-modal-overlay';
-  modal.innerHTML = `
-    <div class="mc-modal-card">
-      <div class="mc-modal-avatar">${avatarHtml}</div>
-      <h2 style="font-size:0.85rem; margin-bottom:1rem;" class="${profile.is_banned ? 'text-red-500 line-through' : 'text-gray-100'}">${profile.username}</h2>
-      <p style="font-family:'Press Start 2P', monospace; font-size:0.55rem; color:#aaaaaa; margin:0 0 1.5rem 0;">RANK: ${rankLabel}</p>
-      <button onclick="document.getElementById('mc-profile-modal').remove()" class="btn-primary w-full" style="font-size:0.55rem;">CLOSE VIEW</button>
-    </div>
-  `;
-  document.body.appendChild(modal);
+// Global action handler hook: Extends query range context boundary windows by 2
+(window as any).triggerLoadMore = () => {
+  currentLimit += 2;
+  loadFeed();
 };
 
 (window as any).reactPost = async (postId: string, emoji: string) => {
