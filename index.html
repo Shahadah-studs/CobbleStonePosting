@@ -3,30 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MineSocial - Create & share</title>
-  <link rel="icon" type="image/png" href="/logo.png?v=2"> 
+  <title>MineSocial - Create & Share</title>
   <link rel="stylesheet" href="src/style.css">
 </head>
 <body class="min-h-screen p-6">
   <!-- Header Bar -->
   <header class="mc-panel flex justify-between items-center mb-6 max-w-4xl mx-auto">
-    <h1 class="text-xl text-amber-500 tracking-tight flex items-center gap-2">MineSocial</h1>
+    <h1 class="text-xl text-amber-500 tracking-tight flex items-center gap-2">MINESOCIAL</h1>
     <div class="flex items-center gap-4">
       <div id="user-badge-container"></div>
       <a href="profile.html" class="btn-primary">PROFILE</a>
       <a id="nav-admin-btn" href="admin.html" class="btn-danger hidden">MOD PANEL</a>
-      <button id="logout-btn" class="logout-link">X</button>
+      <button id="logout-btn" class="logout-x-btn" title="Disconnect">✕</button>
     </div>
   </header>
 
   <div class="max-w-4xl mx-auto xp-divider"></div>
 
-  <!-- Posting Form -->
+  <!-- Posting Form with ImgBB Integration -->
   <main class="max-w-4xl mx-auto space-y-6">
     <form id="post-form" class="mc-panel shadow-xl">
-      <div class="input-header">Posts feed:</div>
-      <textarea id="post-content" placeholder="Type a post to tell everyone..." maxlength="500" required class="input-field mb-3 resize-none h-24" rows="3"></textarea>
-      <div class="flex justify-end">
+      <div class="input-header">POSTS FEED:</div>
+      <textarea id="post-content" placeholder="Type a post or share a link here..." maxlength="500" required class="input-field mb-3 resize-none h-24" rows="3"></textarea>
+      
+      <div class="flex justify-between items-center">
+        <!-- ImgBB Upload Control Area -->
+        <div class="flex items-center gap-2">
+          <span id="upload-status" class="input-header" style="color: #aaaaaa !important; margin: 0;">[IMAGE: NONE]</span>
+          <input type="file" id="post-file-input" accept="image/png, image/jpeg, image/webp" style="display: none;">
+          <button type="button" onclick="document.getElementById('post-file-input').click()" class="btn-primary" style="font-size: 0.55rem; padding: 0.5rem 0.8rem; background-color: #5c5c5c;">+ UPLOAD</button>
+        </div>
+        
         <button type="submit" class="btn-primary">POST</button>
       </div>
     </form>
