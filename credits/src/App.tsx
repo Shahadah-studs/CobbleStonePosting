@@ -1,27 +1,27 @@
 export default function App() {
   const creditsList = [
     {
-      name: "SHAHADAH STUDIOS ELITE",
-      role: "Lead developing studio & Site Construction",
-      description: "Designed, engineered, and coded the entire interactive MineSocial multi-page database layout.",
+      name: "Shahadah Studios Elite",
+      role: "Lead developing studio of the site",
+      description: "Designed, built, and coded the entire interactive MineSocial stucture!",
       color: "#fbbf24" // Gold
     },
     {
-      name: "SUPABASE postgres",
+      name: "Supabase Postgres",
       role: "Backend Database & Real-Time Socket Layer",
-      description: "Powers secure Row Level Security (RLS) policies, accounts authentication gate, and instant mod actions tracking.",
+      description: "Powers secure Row Level Security (RLS) policies, accounts authentication, and instant admin actions safety.",
       color: "#55ff55" // Emerald Green
     },
     {
-      name: "IMGBB STORAGE API",
+      name: "imgBB Storage API",
       role: "Serverless Media Asset Uploading",
       description: "Hosts free player-uploaded binary image data screenshots.",
       color: "#55ffff" // Diamond Blue
     },
     {
-      name: "LUCIDE ICONS",
+      name: "Lucide icons",
       role: "Vector Graphics Interface Assets",
-      description: "Supplies clean, responsive icon tokens used to build interactive layout navigation icons.",
+      description: "Supplies clean, responsive icon tokens used to build interactive layout(s) & navigation icons.",
       color: "#ff55ff" // Purpur Pink
     }
   ];
@@ -31,9 +31,9 @@ export default function App() {
       <div class="flex justify-between items-center mb-6 border-b border-gray-100/10 pb-4">
         <div>
           <h1 class="text-2xl font-black text-amber-500 tracking-tight m-0">CREDITS</h1>
-          <p style="font-family:'Press Start 2P', monospace; font-size:0.55rem; color:#aaaaaa; margin:4px 0 0 0;">SYSTEM CREDENTIALS ATTRIBUTIONS</p>
+          <p style="font-family:'Press Start 2P', monospace; font-size:0.55rem; color:#aaaaaa; margin:4px 0 0 0;">Credits to the items and developers</p>
         </div>
-        <a href="../index.html" class="btn-primary" style="font-size:0.65rem;">BACK</a>
+        <a href="../index.html" class="btn-primary" style="font-size:0.65rem;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-chevron-right preview-icon"><circle cx="12" cy="12" r="10"/><path d="m10 8 4 4-4 4"/></svg></a>
       </div>
 
       <div class="max-w-4xl mx-auto xp-divider"></div>
