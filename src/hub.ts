@@ -2,7 +2,7 @@ import { supabase, checkSessionGuard } from './client';
 import { cleanContentFilter } from './profanity';
 
 let currentProfile: any = null;
-let currentLimit = 4; 
+let currentLimit = 5; 
 
 async function run() {
   currentProfile = await checkSessionGuard();
@@ -167,7 +167,7 @@ async function loadFeed() {
   if (oldModal) oldModal.remove();
 
   const avatarHtml = generateAvatarHTML(profile.username, profile.avatar_url, "48px");
-  const rankLabel = profile.role === 'owner' ? '👑 OWNER' : profile.role === 'admin' ? '🛡️ MODERATOR' : '🗡️ PLAYER';
+  const rankLabel = profile.role === 'owner' ? '👑 OWNER' : profile.role === 'admin' ? '🛡️ ADMIN' : '🗡️ PLAYER';
 
   const modal = document.createElement('div');
   modal.id = 'mc-profile-modal';
@@ -184,7 +184,7 @@ async function loadFeed() {
 };
 
 (window as any).triggerLoadMore = () => {
-  currentLimit += 4; // Steps down by adding 4 extra rows per button click
+  currentLimit += 5; // Steps down by adding 4 extra rows per button click
   loadFeed();
 };
 
