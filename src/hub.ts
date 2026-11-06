@@ -2,11 +2,9 @@ import { supabase, checkSessionGuard } from './client';
 import { cleanContentFilter } from './profanity';
 
 let currentProfile: any = null;
-let currentLimit = 5; // Loads 5 posts by default
-
+let currentLimit = 5;
 
 const IMGBB_API_KEY = import.meta.env.VITE_IMGBB_API_KEY;
-
 
 async function run() {
   currentProfile = await checkSessionGuard();
@@ -28,13 +26,12 @@ async function run() {
   const fileInput = document.getElementById('post-file-input') as HTMLInputElement;
   const statusTxt = document.getElementById('upload-status')!;
 
- 
   fileInput?.addEventListener('change', async () => {
     if (!fileInput.files || fileInput.files.length === 0) return;
     
     const file = fileInput.files[0];
     statusTxt.innerText = "[UPLOADING...]";
-    statusTxt.style.color = "#ffff55"; // Yellow while uploading
+    statusTxt.style.color = "#ffff55";
 
     const formData = new FormData();
     formData.append('image', file);
@@ -47,12 +44,10 @@ async function run() {
       const result = await response.json();
 
       if (result.success) {
-        // Automatically appends the uploaded image URL onto the text input container
         const uploadedUrl = result.data.url;
         contentInput.value = contentInput.value ? `${contentInput.value} ${uploadedUrl}` : uploadedUrl;
-        
         statusTxt.innerText = "[UPLOAD SUCCESS!]";
-        statusTxt.style.color = "#55ff55"; // Green success
+        statusTxt.style.color = "#55ff55";
       } else {
         statusTxt.innerText = "[UPLOAD FAILED]";
         statusTxt.style.color = "#ff5555";
@@ -65,7 +60,6 @@ async function run() {
     }
   });
 
-  // SUBMIT FORM EVENT HANDLER
   document.getElementById('post-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const rawText = contentInput.value.trim();
@@ -75,30 +69,38 @@ async function run() {
 
     await supabase.from('posts').insert({ user_id: currentProfile.id, content: safeText });
     
-    // Reset fields and parameters
     contentInput.value = '';
     fileInput.value = '';
     statusTxt.innerText = "[IMAGE: NONE]";
     statusTxt.style.color = "#aaaaaa";
     
-    currentLimit = 4; 
+    currentLimit = 5; 
     loadFeed();
   });
 }
 
-function generateAvatarHTML(username: string, avatarUrl?: string) {
+function generateAvatarHTML(username: string, avatarUrl?: string, customSize?: string) {
+  const sizeStyle = customSize ? `style="width:${customSize};height:${customSize};min-width:${customSize};min-height:${customSize};"` : '';
   if (avatarUrl && avatarUrl.trim() !== '') {
-    return `<div class="mc-avatar-frame"><img src="${avatarUrl}" class="mc-avatar-img" alt="${username}"></div>`;
+    return `
+      <div class="mc-avatar-frame" ${sizeStyle}>
+        <img src="${avatarUrl}" class="mc-avatar-img" alt="${username}">
+      </div>
+    `;
   }
+
   const fallbackColors = ['#3f3f3f', '#7a2222', '#1b5a7a', '#2c6d2c']; 
   const charCodeSum = username.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
   const selectedBgColor = fallbackColors[charCodeSum % fallbackColors.length];
   const firstLetter = username.charAt(0).toUpperCase();
 
-  return `<div class="mc-avatar-frame" style="background-color: ${selectedBgColor};"><span class="mc-avatar-char">${firstLetter}</span></div>`;
+  return `
+    <div class="mc-avatar-frame" ${sizeStyle} style="background-color: ${selectedBgColor};">
+      <span class="mc-avatar-char">${firstLetter}</span>
+    </div>
+  `;
 }
 
-// LINK PREVIEW ENGINE: Modified to parse and show ImgBB links directly as Image tags
 function linkPreviewEngine(text: string): string {
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   const matches = text.match(urlRegex);
@@ -113,10 +115,10 @@ function linkPreviewEngine(text: string): string {
   if (firstUrl.includes('youtube.com') || firstUrl.includes('youtu.be')) {
     displayTitle = "📺 YOUTUBE VIDEO";
     themeColor = "#ff5555";
-  } else if (firstUrl.includes('imgur.com') || firstUrl.includes('ibc.co') || firstUrl.includes('imgBB') || firstUrl.includes('i.ibb.co')) {
-    displayTitle = "MINESOCIAL IMAGE";
+  } else if (firstUrl.includes('imgur.com') || firstUrl.includes('ibb.co') || firstUrl.includes('imgBB') || firstUrl.includes('i.ibb.co')) {
+    displayTitle = "IMGUR IMAGE";
     themeColor = "#55ff55";
-    isDirectImage = true; // Signals the engine to output an actual live image preview pixel block
+    isDirectImage = true; 
   } else if (firstUrl.includes('namemc.com')) {
     displayTitle = "NAMEMC PLAYER PROFILE";
     themeColor = "#ffaa00";
@@ -138,8 +140,10 @@ function renderHeaderBadge() {
   
   container.className = "flex items-center gap-2";
   container.innerHTML = `
-    ${avatarMark}
-    <span class="text-xs font-bold text-gray-100 flex items-center">${currentProfile.username} ${crown}</span>
+    <div onclick="window.viewPlayerProfile('${currentProfile.id}')" style="cursor:pointer;" class="flex items-center gap-2">
+      ${avatarMark}
+      <span class="text-xs font-bold text-gray-100 flex items-center">${currentProfile.username} ${crown}</span>
+    </div>
   `;
 }
 
@@ -170,7 +174,7 @@ async function loadFeed() {
         <div class="flex justify-between items-start mb-3">
           <div class="flex items-center gap-3">
             ${avatarLayout}
-            <span class="font-bold flex items-center gap-1.5 ${isBanned ? 'text-red-500 line-through font-mono text-sm' : 'text-gray-100'}">
+            <span onclick="window.viewPlayerProfile('${post.user_id}')" class="font-bold mc-username-clickable flex items-center gap-1.5 ${isBanned ? 'text-red-500 line-through font-mono text-sm' : 'text-gray-100'}">
               ${nameString} <span class="owner-crown">${crown}</span>
             </span>
           </div>
@@ -201,6 +205,30 @@ async function loadFeed() {
   container.innerHTML = feedHTML;
 }
 
+(window as any).viewPlayerProfile = async (userId: string) => {
+  const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
+  if (error || !profile) return;
+
+  const oldModal = document.getElementById('mc-profile-modal');
+  if (oldModal) oldModal.remove();
+
+  const avatarHtml = generateAvatarHTML(profile.username, profile.avatar_url, "48px");
+  const rankLabel = profile.role === 'owner' ? '👑 OWNER' : profile.role === 'admin' ? '🛡️ MODERATOR' : '🗡️ PLAYER';
+
+  const modal = document.createElement('div');
+  modal.id = 'mc-profile-modal';
+  modal.className = 'mc-modal-overlay';
+  modal.innerHTML = `
+    <div class="mc-modal-card">
+      <div class="mc-modal-avatar">${avatarHtml}</div>
+      <h2 style="font-size:0.85rem; margin-bottom:1rem; font-family:'Press Start 2P', monospace;" class="${profile.is_banned ? 'text-red-500 line-through' : 'text-gray-100'}">${profile.username}</h2>
+      <p style="font-family:'Press Start 2P', monospace; font-size:0.55rem; color:#aaaaaa; margin:0 0 1.5rem 0;">RANK: ${rankLabel}</p>
+      <button onclick="document.getElementById('mc-profile-modal').remove()" class="btn-primary w-full" style="font-size:0.55rem;">CLOSE VIEW</button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+};
+
 (window as any).triggerLoadMore = () => {
   currentLimit += 5; 
   loadFeed();
@@ -212,9 +240,10 @@ async function loadFeed() {
 };
 
 (window as any).reportPost = async (postId: string) => {
-  const reason = prompt("Enter an actual reason for flagging this content:");
+  const reason = prompt("Enter a comprehensive reason for flagging this content:");
   if (!reason) return;
   await supabase.from('reports').insert({ post_id: postId, reporter_id: currentProfile.id, reason });
+
   alert("Report sent to admin panel.");
 };
 
