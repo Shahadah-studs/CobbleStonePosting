@@ -51,7 +51,7 @@ export default function App() {
       </div>
 
       <div class="max-w-4xl mx-auto xp-divider" style="margin-top: 1.5rem;"></div>
-      <p style="font-family:'Press Start 2P', monospace; font-size:0.45rem; color:#555555; text-align:center; margin:1rem 0 0 0;">MINESOCIAL ECOSYSTEM • CORE VERSION 1.0.0 APPROVED</p>
+      <p style="font-family:'Press Start 2P', monospace; font-size:0.45rem; color:#555555; text-align:center; margin:1rem 0 0 0;"> &copy; MINESOCIAL • CORE VERSION 1.0.0 APPROVED</p>
     </div>
   `;
 }
